@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "Bash(where gh:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -sL https://raw.githubusercontent.com/TheMouseNest/Baganator/refs/heads/main/API/Main.lua)"
+    ]
+  }
+}
