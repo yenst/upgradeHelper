@@ -134,6 +134,9 @@ function H:ScanAllItems()
     if H.UpdateBagOverlays then
         H:UpdateBagOverlays()
     end
+    if Baganator and Baganator.API and Baganator.API.RequestItemButtonsRefresh then
+        Baganator.API.RequestItemButtonsRefresh()
+    end
 end
 
 --- Check a single item for crest-free upgrade levels.
