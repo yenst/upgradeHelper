@@ -72,6 +72,12 @@ MakeCheckbox("Show Scan Message",
     function(v) H.db.showScanMessage = v end,
     "Print a chat message when an upgrade scan completes at the vendor")
 
+-- Auto Scan at Vendor
+MakeCheckbox("Auto Scan at Vendor",
+    function() return H.db.autoScan end,
+    function(v) H.db.autoScan = v end,
+    "Automatically scan for free upgrades when opening the upgrade vendor")
+
 ------------------------------------------------------------------------
 -- Required callbacks
 ------------------------------------------------------------------------

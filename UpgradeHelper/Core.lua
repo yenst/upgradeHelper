@@ -5,6 +5,7 @@ H.db = {
     showTooltips = true,
     showCharOverlays = true,
     showScanMessage = true,
+    autoScan = true,
 }
 H.scannedItems = {}
 H.scanInProgress = false
@@ -233,6 +234,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         if UpgradeHelperDB.showTooltips == nil then UpgradeHelperDB.showTooltips = true end
         if UpgradeHelperDB.showCharOverlays == nil then UpgradeHelperDB.showCharOverlays = true end
         if UpgradeHelperDB.showScanMessage == nil then UpgradeHelperDB.showScanMessage = true end
+        if UpgradeHelperDB.autoScan == nil then UpgradeHelperDB.autoScan = true end
         if UpgradeHelperDB.scannedItems == nil then UpgradeHelperDB.scannedItems = {} end
         H.db = UpgradeHelperDB
         H.scannedItems = H.db.scannedItems
@@ -243,6 +245,9 @@ frame:SetScript("OnEvent", function(self, event, arg1)
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then
             H:CreateScanButton()
+            if H.db.autoScan then
+                C_Timer.After(0.2, function() H:ScanAllItems() end)
+            end
         end
     elseif event == "PLAYER_EQUIPMENT_CHANGED" then
         if H.UpdateCharacterOverlays then
