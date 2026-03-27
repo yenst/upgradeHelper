@@ -20,7 +20,7 @@ local function CreateArrowOverlay(parent)
 
     local icon = overlay:CreateTexture(nil, "OVERLAY")
     icon:SetAllPoints()
-    icon:SetTexture("Interface\\BUTTONS\\Arrow-Up-Up")
+    icon:SetAtlas("poi-door-arrow-up")
     icon:SetVertexColor(0, 1, 0, 1)
     overlay.icon = icon
 
