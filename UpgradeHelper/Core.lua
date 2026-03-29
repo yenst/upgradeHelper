@@ -253,7 +253,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         end
 
         UpgradeHelperDB.charScannedItems = UpgradeHelperDB.charScannedItems or {}
-        local charKey = UnitName("player") .. "-" .. GetNormalizedRealmName()
+        local charKey = UnitName("player") .. "-" .. (GetNormalizedRealmName() or GetRealmName():gsub("%s", ""))
         H.charKey = charKey
         UpgradeHelperDB.charScannedItems[charKey] = UpgradeHelperDB.charScannedItems[charKey] or {}
 
