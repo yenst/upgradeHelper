@@ -9,6 +9,7 @@ H.db = {
 }
 H.scannedItems = {}
 H.scanInProgress = false
+H.charKey = nil -- set on ADDON_LOADED
 
 ------------------------------------------------------------------------
 -- Slot ID → slot button name mapping
@@ -120,7 +121,7 @@ function H:ScanAllItems()
         end
     end
 
-    H.db.scannedItems = scanned
+    H.db.charScannedItems[H.charKey] = scanned
     H.scannedItems = scanned
     H.scanInProgress = false
 
@@ -238,9 +239,24 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         if UpgradeHelperDB.showCharOverlays == nil then UpgradeHelperDB.showCharOverlays = true end
         if UpgradeHelperDB.showScanMessage == nil then UpgradeHelperDB.showScanMessage = true end
         if UpgradeHelperDB.autoScan == nil then UpgradeHelperDB.autoScan = true end
-        if UpgradeHelperDB.scannedItems == nil then UpgradeHelperDB.scannedItems = {} end
+
+        -- Migrate old flat scannedItems to per-character storage
+        if UpgradeHelperDB.scannedItems and next(UpgradeHelperDB.scannedItems) then
+            -- Check if it's old-style (flat, not keyed by character)
+            local firstKey, firstVal = next(UpgradeHelperDB.scannedItems)
+            if type(firstVal) == "table" and firstVal.currentIlvl then
+                -- Old format: flat item data — discard it (we don't know which char it belonged to)
+                UpgradeHelperDB.scannedItems = nil
+            end
+        end
+
+        UpgradeHelperDB.charScannedItems = UpgradeHelperDB.charScannedItems or {}
+        local charKey = UnitName("player") .. "-" .. GetNormalizedRealmName()
+        H.charKey = charKey
+        UpgradeHelperDB.charScannedItems[charKey] = UpgradeHelperDB.charScannedItems[charKey] or {}
+
         H.db = UpgradeHelperDB
-        H.scannedItems = H.db.scannedItems
+        H.scannedItems = H.db.charScannedItems[charKey]
 
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
@@ -344,7 +360,7 @@ SlashCmdList["UPGRADEHELPER"] = function(msg)
             print("|cff00ccffUpgradeHelper|r: Must be at an upgrade vendor to scan")
         end
     elseif cmd == "reset" then
-        wipe(H.db.scannedItems)
+        wipe(H.db.charScannedItems[H.charKey])
         wipe(H.scannedItems)
         if H.UpdateCharacterOverlays then H:UpdateCharacterOverlays() end
         print("|cff00ccffUpgradeHelper|r: Cached data cleared")
