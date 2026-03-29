@@ -185,7 +185,8 @@ function H:CheckItemUpgrade(itemLocation, slotID)
             if levelInfo.itemCostsToUpgrade then
                 for _, itemCost in ipairs(levelInfo.itemCostsToUpgrade) do
                     if itemCost.cost and itemCost.cost > 0 then
-                        if not (itemCost.discountInfo and itemCost.discountInfo.isDiscounted) then
+                        local di = itemCost.discountInfo
+                        if not (di and di.isDiscounted and di.doesCurrentCharacterMeetHighWatermark) then
                             hasNonGoldCost = true
                         end
                     end
@@ -195,7 +196,8 @@ function H:CheckItemUpgrade(itemLocation, slotID)
             if levelInfo.currencyCostsToUpgrade then
                 for _, currCost in ipairs(levelInfo.currencyCostsToUpgrade) do
                     if currCost.cost and currCost.cost > 0 then
-                        if not (currCost.discountInfo and currCost.discountInfo.isDiscounted) then
+                        local di = currCost.discountInfo
+                        if not (di and di.isDiscounted and di.doesCurrentCharacterMeetHighWatermark) then
                             hasNonGoldCost = true
                         end
                     end
@@ -362,6 +364,7 @@ SlashCmdList["UPGRADEHELPER"] = function(msg)
     elseif cmd == "reset" then
         wipe(H.db.charScannedItems[H.charKey])
         wipe(H.scannedItems)
+        H.db.scannedItems = nil -- clear legacy shared data
         if H.UpdateCharacterOverlays then H:UpdateCharacterOverlays() end
         print("|cff00ccffUpgradeHelper|r: Cached data cleared")
     elseif cmd == "settings" or cmd == "config" then
