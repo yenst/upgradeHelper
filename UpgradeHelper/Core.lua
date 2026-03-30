@@ -6,8 +6,39 @@ H.db = {
     showCharOverlays = true,
     showScanMessage = true,
     autoScan = true,
+    iconStyle = "arrow_green",
 }
 H.scannedItems = {}
+
+------------------------------------------------------------------------
+-- Icon options for upgrade indicators
+------------------------------------------------------------------------
+H.ICON_OPTIONS = {
+    {key = "arrow_green", label = "Green Arrow", atlas = "poi-door-arrow-up", color = {0, 1, 0, 1}},
+    {key = "coin_gold", label = "Gold Coin", atlas = "Coin-Gold", color = {1, 1, 1, 1}},
+    {key = "goblin_face", label = "Goblin Face", atlas = "majorfactions_icons_stars512", color = {1, 1, 1, 1}},
+    {key = "golden_boot", label = "Golden Boot", atlas = "Taxi_Frame_Yellow", color = {1, 1, 1, 1}},
+    {key = "quest_icon", label = "Quest Log Icon", atlas = "crosshair_directions_64", color = {1, 1, 1, 1}},
+    {key = "abundance", label = "Bountiful Abundance", atlas = "UI-EventPoi-abundancebountiful", color = {1, 1, 1, 1}},
+    {key = "mage_staff", label = "Mage Staff", atlas = "Crosshair_enchant_48", color = {1, 1, 1, 1}},
+    {key = "fireball", label = "Fireball", atlas = "wowlabs_spellbucketicon-fireball", color = {1, 1, 1, 1}},
+    {key = "question_mark", label = "Question Mark", atlas = "UI-LFG-RoleIcon-Pending", color = {1, 1, 1, 1}},
+    {key = "transmog", label = "Transmog", atlas = "Crosshair_Transmogrify_48", color = {1, 1, 1, 1}},
+    {key = "checkmark_glow", label = "Glowing Check Mark", atlas = "VAS-icon-checkmark-glw", color = {1, 1, 1, 1}},
+    {key = "woons", label = "WOONS", atlas = "AzeriteArmor-Notification-Neck", color = {1, 1, 1, 1}},
+    {key = "bag", label = "Bag", atlas = "shop-icon-mount-utility-up", color = {1, 1, 1, 1}},
+    {key = "gold_medal", label = "Gold Medal", atlas = "challenges-medal-gold", color = {1, 1, 1, 1}},
+    {key = "vault_slot", label = "Vault Slot", atlas = "mythicplus-dragonflight-greatvault-collect", color = {1, 1, 1, 1}},
+    {key = "glowing_ball", label = "Glowing Ball", atlas = "CovenantSanctum-Renown-Next-Glow-Kyrian", color = {1, 1, 1, 1}},
+}
+
+function H:GetIconInfo()
+    local key = H.db.iconStyle or "arrow_green"
+    for _, opt in ipairs(H.ICON_OPTIONS) do
+        if opt.key == key then return opt end
+    end
+    return H.ICON_OPTIONS[1]
+end
 H.scanInProgress = false
 H.charKey = nil -- set on ADDON_LOADED
 
@@ -241,6 +272,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         if UpgradeHelperDB.showCharOverlays == nil then UpgradeHelperDB.showCharOverlays = true end
         if UpgradeHelperDB.showScanMessage == nil then UpgradeHelperDB.showScanMessage = true end
         if UpgradeHelperDB.autoScan == nil then UpgradeHelperDB.autoScan = true end
+        if UpgradeHelperDB.iconStyle == nil then UpgradeHelperDB.iconStyle = "arrow_green" end
 
         -- Migrate old flat scannedItems to per-character storage
         if UpgradeHelperDB.scannedItems and next(UpgradeHelperDB.scannedItems) then

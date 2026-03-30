@@ -18,10 +18,11 @@ local function CreateArrowOverlay(parent)
     overlay:SetSize(ARROW_SIZE, ARROW_SIZE)
     overlay:SetFrameLevel(parent:GetFrameLevel() + 5)
 
+    local iconInfo = H:GetIconInfo()
     local icon = overlay:CreateTexture(nil, "OVERLAY")
     icon:SetAllPoints()
-    icon:SetAtlas("poi-door-arrow-up")
-    icon:SetVertexColor(0, 1, 0, 1)
+    icon:SetAtlas(iconInfo.atlas)
+    icon:SetVertexColor(unpack(iconInfo.color))
     overlay.icon = icon
 
     overlay:Hide()
@@ -79,6 +80,26 @@ function H:UpdateCharacterOverlays()
                 overlay:Hide()
             end
         end
+    end
+end
+
+--- Refresh icon atlas/color on all existing overlays (called when icon setting changes).
+function H:RefreshOverlayIcons()
+    local iconInfo = H:GetIconInfo()
+    for _, overlay in pairs(charOverlays) do
+        if overlay.icon then
+            overlay.icon:SetAtlas(iconInfo.atlas)
+            overlay.icon:SetVertexColor(unpack(iconInfo.color))
+        end
+    end
+    for _, overlay in pairs(bagOverlays) do
+        if overlay.icon then
+            overlay.icon:SetAtlas(iconInfo.atlas)
+            overlay.icon:SetVertexColor(unpack(iconInfo.color))
+        end
+    end
+    if Baganator and Baganator.API and Baganator.API.RequestItemButtonsRefresh then
+        Baganator.API.RequestItemButtonsRefresh()
     end
 end
 
@@ -218,14 +239,17 @@ local function RegisterBaganatorWidget()
             if not details.itemLink then return false end
             local info = H:GetFreeUpgradeInfo(details.itemLink)
             if info and info.freeLevels > 0 then
-                cornerFrame:SetVertexColor(0, 1, 0)
+                local iconInfo = H:GetIconInfo()
+                cornerFrame:SetAtlas(iconInfo.atlas)
+                cornerFrame:SetVertexColor(unpack(iconInfo.color))
                 return true
             end
             return false
         end,
         function(itemButton)
             local texture = itemButton:CreateTexture(nil, "ARTWORK")
-            texture:SetAtlas("poi-door-arrow-up")
+            local iconInfo = H:GetIconInfo()
+            texture:SetAtlas(iconInfo.atlas)
             texture:SetSize(11, 11)
             return texture
         end,

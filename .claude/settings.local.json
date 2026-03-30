@@ -5,7 +5,9 @@
       "Bash(where gh:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
-      "Bash(curl -sL https://raw.githubusercontent.com/TheMouseNest/Baganator/refs/heads/main/API/Main.lua)"
+      "Bash(curl -sL https://raw.githubusercontent.com/TheMouseNest/Baganator/refs/heads/main/API/Main.lua)",
+      "WebFetch(domain:warcraft.wiki.gg)",
+      "WebSearch"
     ]
   }
 }

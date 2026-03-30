@@ -47,6 +47,51 @@ local function MakeCheckbox(label, getFunc, setFunc, tooltip)
     return cb
 end
 
+local function MakeDropdown(label, width, options, getFunc, setFunc, tooltip)
+    local text = optionsFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("TOPLEFT", lastWidget, "BOTTOMLEFT", lastWidget == version and -2 or 0, SPACING)
+    text:SetText(label)
+
+    local dropName = "UpgradeHelper_" .. label:gsub("%s", "") .. "_Dropdown"
+    local dropdown = CreateFrame("Frame", dropName, optionsFrame, "UIDropDownMenuTemplate")
+    dropdown:SetPoint("TOPLEFT", text, "BOTTOMLEFT", -16, -2)
+    UIDropDownMenu_SetWidth(dropdown, width)
+
+    local function optLabel(opt)
+        return "|A:" .. opt.atlas .. ":16:16|a  " .. opt.label
+    end
+
+    local function updateText()
+        local key = getFunc()
+        for _, opt in ipairs(options) do
+            if opt.key == key then
+                UIDropDownMenu_SetText(dropdown, optLabel(opt))
+                return
+            end
+        end
+    end
+
+    UIDropDownMenu_Initialize(dropdown, function(self, level)
+        for _, opt in ipairs(options) do
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = optLabel(opt)
+            info.value = opt.key
+            info.checked = (getFunc() == opt.key)
+            info.func = function()
+                setFunc(opt.key)
+                updateText()
+                CloseDropDownMenus()
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    dropdown:SetScript("OnShow", updateText)
+
+    lastWidget = dropdown
+    return dropdown
+end
+
 ------------------------------------------------------------------------
 -- Controls
 ------------------------------------------------------------------------
@@ -77,6 +122,14 @@ MakeCheckbox("Auto Scan at Vendor",
     function() return H.db.autoScan end,
     function(v) H.db.autoScan = v end,
     "Automatically scan for free upgrades when opening the upgrade vendor")
+
+-- Indicator Icon
+MakeDropdown("Indicator Icon", 150, H.ICON_OPTIONS,
+    function() return H.db.iconStyle end,
+    function(v)
+        H.db.iconStyle = v
+        if H.RefreshOverlayIcons then H:RefreshOverlayIcons() end
+    end)
 
 ------------------------------------------------------------------------
 -- Required callbacks
