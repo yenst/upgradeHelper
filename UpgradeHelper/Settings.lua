@@ -58,7 +58,10 @@ local function MakeDropdown(label, width, options, getFunc, setFunc, tooltip)
     UIDropDownMenu_SetWidth(dropdown, width)
 
     local function optLabel(opt)
-        return "|A:" .. opt.atlas .. ":16:16|a  " .. opt.label
+        if opt.atlas then
+            return "|A:" .. opt.atlas .. ":16:16|a  " .. opt.label
+        end
+        return opt.label
     end
 
     local function updateText()
@@ -88,7 +91,26 @@ local function MakeDropdown(label, width, options, getFunc, setFunc, tooltip)
 
     dropdown:SetScript("OnShow", updateText)
 
-    lastWidget = dropdown
+    if tooltip then
+        local hitFrame = CreateFrame("Frame", nil, optionsFrame)
+        hitFrame:SetPoint("TOPLEFT", text, "TOPLEFT")
+        hitFrame:SetPoint("BOTTOMRIGHT", text, "BOTTOMRIGHT")
+        hitFrame:EnableMouse(true)
+        hitFrame:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(label, 1, 1, 1)
+            GameTooltip:AddLine(tooltip, nil, nil, nil, true)
+            GameTooltip:Show()
+        end)
+        hitFrame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end
+
+    -- Anchor for next widget: vertically below the dropdown, horizontally
+    -- aligned with the label (compensating for the -16 UIDropDownMenu offset).
+    local anchor = CreateFrame("Frame", nil, optionsFrame)
+    anchor:SetSize(1, 1)
+    anchor:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 16, 0)
+    lastWidget = anchor
     return dropdown
 end
 
@@ -130,6 +152,15 @@ MakeDropdown("Indicator Icon", 150, H.ICON_OPTIONS,
         H.db.iconStyle = v
         if H.RefreshOverlayIcons then H:RefreshOverlayIcons() end
     end)
+
+-- Icon Position
+MakeDropdown("Icon Position", 150, H.POSITION_OPTIONS,
+    function() return H.db.iconPosition end,
+    function(v)
+        H.db.iconPosition = v
+        if H.RefreshOverlayPositions then H:RefreshOverlayPositions() end
+    end,
+    "Choose which corner of the item slot to display the indicator icon.\nBaganator users: configure the corner in Baganator's own settings.")
 
 ------------------------------------------------------------------------
 -- Required callbacks

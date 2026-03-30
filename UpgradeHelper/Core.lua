@@ -7,6 +7,7 @@ H.db = {
     showScanMessage = true,
     autoScan = true,
     iconStyle = "arrow_green",
+    iconPosition = "BOTTOMRIGHT",
 }
 H.scannedItems = {}
 
@@ -30,6 +31,13 @@ H.ICON_OPTIONS = {
     {key = "gold_medal", label = "Gold Medal", atlas = "challenges-medal-gold", color = {1, 1, 1, 1}},
     {key = "vault_slot", label = "Vault Slot", atlas = "mythicplus-dragonflight-greatvault-collect", color = {1, 1, 1, 1}},
     {key = "glowing_ball", label = "Glowing Ball", atlas = "CovenantSanctum-Renown-Next-Glow-Kyrian", color = {1, 1, 1, 1}},
+}
+
+H.POSITION_OPTIONS = {
+    {key = "TOPLEFT",     label = "Top Left"},
+    {key = "TOPRIGHT",    label = "Top Right"},
+    {key = "BOTTOMLEFT",  label = "Bottom Left"},
+    {key = "BOTTOMRIGHT", label = "Bottom Right"},
 }
 
 function H:GetIconInfo()
@@ -273,6 +281,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         if UpgradeHelperDB.showScanMessage == nil then UpgradeHelperDB.showScanMessage = true end
         if UpgradeHelperDB.autoScan == nil then UpgradeHelperDB.autoScan = true end
         if UpgradeHelperDB.iconStyle == nil then UpgradeHelperDB.iconStyle = "arrow_green" end
+        if UpgradeHelperDB.iconPosition == nil then UpgradeHelperDB.iconPosition = "BOTTOMRIGHT" end
 
         -- Migrate old flat scannedItems to per-character storage
         if UpgradeHelperDB.scannedItems and next(UpgradeHelperDB.scannedItems) then
@@ -292,8 +301,17 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         H.db = UpgradeHelperDB
         H.scannedItems = H.db.charScannedItems[charKey]
 
+        -- Register Baganator widget now that H.db has the saved position
+        if C_AddOns.IsAddOnLoaded("Baganator") then
+            H:RegisterBaganatorWidget()
+            frame:UnregisterEvent("ADDON_LOADED")
+        end
+        -- else: keep ADDON_LOADED registered to catch Baganator loading later
+
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
+    elseif event == "ADDON_LOADED" and arg1 == "Baganator" then
+        H:RegisterBaganatorWidget()
         frame:UnregisterEvent("ADDON_LOADED")
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then

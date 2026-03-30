@@ -10,6 +10,17 @@ local bagOverlays = {}  -- "bag:slot" → overlay frame
 
 local ARROW_SIZE = 14
 
+local POSITION_OFFSETS = {
+    TOPLEFT     = { point = "TOPLEFT",     x = -2, y =  2 },
+    TOPRIGHT    = { point = "TOPRIGHT",    x =  2, y =  2 },
+    BOTTOMLEFT  = { point = "BOTTOMLEFT",  x = -2, y = -2 },
+    BOTTOMRIGHT = { point = "BOTTOMRIGHT", x =  2, y =  2 },
+}
+
+local function GetPositionInfo()
+    return POSITION_OFFSETS[H.db.iconPosition or "BOTTOMRIGHT"] or POSITION_OFFSETS.BOTTOMRIGHT
+end
+
 ------------------------------------------------------------------------
 -- Shared overlay creator
 ------------------------------------------------------------------------
@@ -17,6 +28,9 @@ local function CreateArrowOverlay(parent)
     local overlay = CreateFrame("Frame", nil, parent)
     overlay:SetSize(ARROW_SIZE, ARROW_SIZE)
     overlay:SetFrameLevel(parent:GetFrameLevel() + 5)
+
+    local posInfo = GetPositionInfo()
+    overlay:SetPoint(posInfo.point, parent, posInfo.point, posInfo.x, posInfo.y)
 
     local iconInfo = H:GetIconInfo()
     local icon = overlay:CreateTexture(nil, "OVERLAY")
@@ -41,7 +55,6 @@ local function GetOrCreateCharOverlay(slotID)
     if not slotButton then return nil end
 
     local overlay = CreateArrowOverlay(slotButton)
-    overlay:SetPoint("BOTTOMRIGHT", slotButton, "BOTTOMRIGHT", 2, 2)
 
     overlay:EnableMouse(true)
     overlay:SetScript("OnEnter", function(self)
@@ -103,6 +116,19 @@ function H:RefreshOverlayIcons()
     end
 end
 
+--- Reposition all existing overlays (called when position setting changes).
+function H:RefreshOverlayPositions()
+    local posInfo = GetPositionInfo()
+    for _, overlay in pairs(charOverlays) do
+        overlay:ClearAllPoints()
+        overlay:SetPoint(posInfo.point, overlay:GetParent(), posInfo.point, posInfo.x, posInfo.y)
+    end
+    for _, overlay in pairs(bagOverlays) do
+        overlay:ClearAllPoints()
+        overlay:SetPoint(posInfo.point, overlay:GetParent(), posInfo.point, posInfo.x, posInfo.y)
+    end
+end
+
 ------------------------------------------------------------------------
 -- Bag overlays
 ------------------------------------------------------------------------
@@ -112,7 +138,6 @@ local function GetOrCreateBagOverlay(bagButton)
     if bagButton._upgradeHelperOverlay then return bagButton._upgradeHelperOverlay end
 
     local overlay = CreateArrowOverlay(bagButton)
-    overlay:SetPoint("BOTTOMRIGHT", bagButton, "BOTTOMRIGHT", 2, 2)
 
     bagButton._upgradeHelperOverlay = overlay
     bagOverlays[bagButton] = overlay
@@ -229,8 +254,10 @@ end)
 -- Baganator integration (corner widget API)
 ------------------------------------------------------------------------
 
-local function RegisterBaganatorWidget()
+function H:RegisterBaganatorWidget()
     if not Baganator or not Baganator.API or not Baganator.API.RegisterCornerWidget then return end
+    if H.baganatorRegistered then return end
+    H.baganatorRegistered = true
 
     Baganator.API.RegisterCornerWidget(
         "UpgradeHelper: Free Upgrade",
@@ -255,17 +282,4 @@ local function RegisterBaganatorWidget()
         end,
         {corner = "bottom_right", priority = 1}
     )
-end
-
-if C_AddOns.IsAddOnLoaded("Baganator") then
-    RegisterBaganatorWidget()
-else
-    local bagaFrame = CreateFrame("Frame")
-    bagaFrame:RegisterEvent("ADDON_LOADED")
-    bagaFrame:SetScript("OnEvent", function(self, _, addon)
-        if addon == "Baganator" then
-            RegisterBaganatorWidget()
-            self:UnregisterEvent("ADDON_LOADED")
-        end
-    end)
 end
