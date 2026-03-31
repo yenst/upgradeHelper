@@ -31,6 +31,7 @@ H.ICON_OPTIONS = {
     {key = "gold_medal", label = "Gold Medal", atlas = "challenges-medal-gold", color = {1, 1, 1, 1}},
     {key = "vault_slot", label = "Vault Slot", atlas = "mythicplus-dragonflight-greatvault-collect", color = {1, 1, 1, 1}},
     {key = "glowing_ball", label = "Glowing Ball", atlas = "CovenantSanctum-Renown-Next-Glow-Kyrian", color = {1, 1, 1, 1}},
+    {key = "glowy_sword", label = "Glowy Sword", atlas = "UpgradeItem-32x32", color = {1, 1, 1, 1}},
 }
 
 H.POSITION_OPTIONS = {
@@ -304,23 +305,19 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         H.db = UpgradeHelperDB
         H.scannedItems = H.db.charScannedItems[charKey]
 
-        -- Hook already-loaded bag addons
+        -- Register Baganator widget now that H.db has the saved position
         if C_AddOns.IsAddOnLoaded("Baganator") then
             H:RegisterBaganatorWidget()
         end
-        -- Bagnon uses ## Group: BagBrother, so check both names
-        if C_AddOns.IsAddOnLoaded("Bagnon") or C_AddOns.IsAddOnLoaded("BagBrother") then
-            H:HookBagnon()
-        end
+        -- Hook Bagnon if already loaded (BagBrother is the Group name)
+        pcall(H.HookBagnon, H)
 
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
-    elseif event == "ADDON_LOADED" then
-        if arg1 == "Baganator" then
-            H:RegisterBaganatorWidget()
-        elseif arg1 == "Bagnon" or arg1 == "BagBrother" then
-            H:HookBagnon()
-        end
+    elseif event == "ADDON_LOADED" and arg1 == "Baganator" then
+        H:RegisterBaganatorWidget()
+    elseif event == "ADDON_LOADED" and (arg1 == "Bagnon" or arg1 == "BagBrother") then
+        pcall(H.HookBagnon, H)
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then
             H:CreateScanButton()
