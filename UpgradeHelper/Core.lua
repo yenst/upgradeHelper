@@ -181,6 +181,9 @@ function H:ScanAllItems()
     if H.bagnonHooked and H.bagnonAddon and H.bagnonAddon.SendSignal then
         H.bagnonAddon:SendSignal('UPDATE_ALL')
     end
+    if H.betterBagsHooked and H.UpdateBetterBagsOverlays then
+        H:UpdateBetterBagsOverlays()
+    end
 end
 
 --- Check a single item for crest-free upgrade levels.
@@ -311,6 +314,10 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         end
         -- Hook Bagnon if already loaded (BagBrother is the Group name)
         pcall(H.HookBagnon, H)
+        -- Hook BetterBags if already loaded
+        if C_AddOns.IsAddOnLoaded("BetterBags") then
+            pcall(H.HookBetterBags, H)
+        end
 
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
@@ -318,6 +325,8 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         H:RegisterBaganatorWidget()
     elseif event == "ADDON_LOADED" and (arg1 == "Bagnon" or arg1 == "BagBrother") then
         pcall(H.HookBagnon, H)
+    elseif event == "ADDON_LOADED" and arg1 == "BetterBags" then
+        pcall(H.HookBetterBags, H)
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then
             H:CreateScanButton()

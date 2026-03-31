@@ -114,6 +114,9 @@ function H:RefreshOverlayIcons()
     if Baganator and Baganator.API and Baganator.API.RequestItemButtonsRefresh then
         Baganator.API.RequestItemButtonsRefresh()
     end
+    if H.betterBagsHooked and H.UpdateBetterBagsOverlays then
+        H:UpdateBetterBagsOverlays()
+    end
 end
 
 --- Reposition all existing overlays (called when position setting changes).
@@ -282,6 +285,99 @@ function H:RegisterBaganatorWidget()
         end,
         {corner = "bottom_right", priority = 1}
     )
+end
+
+------------------------------------------------------------------------
+-- BetterBags integration (AceEvent messaging)
+------------------------------------------------------------------------
+
+local betterBagsHooked = false
+local betterBagsBags = {} -- bag references for re-iteration after scans
+
+local function UpdateBetterBagsItem(item)
+    if not item or not item.button then return end
+    local ok, data = pcall(item.GetItemData, item)
+    if not ok or not data or data.isItemEmpty then
+        if item.button._upgradeHelperOverlay then
+            item.button._upgradeHelperOverlay:Hide()
+        end
+        return
+    end
+
+    local itemLink = data.itemInfo and data.itemInfo.itemLink
+    if not itemLink then
+        if item.button._upgradeHelperOverlay then
+            item.button._upgradeHelperOverlay:Hide()
+        end
+        return
+    end
+
+    local info = H:GetFreeUpgradeInfo(itemLink)
+    if info and info.freeLevels > 0 and H.db.showCharOverlays then
+        local ov = GetOrCreateBagOverlay(item.button)
+        if ov then
+            ov:SetFrameLevel(item.button:GetFrameLevel() + 5)
+            ov:Show()
+        end
+    else
+        if item.button._upgradeHelperOverlay then
+            item.button._upgradeHelperOverlay:Hide()
+        end
+    end
+end
+
+local function RefreshBetterBagsBag(bag)
+    if not bag or not bag.currentView then return end
+    local ok, itemsBySlot = pcall(bag.currentView.GetItemsByBagAndSlot, bag.currentView)
+    if not ok or not itemsBySlot then return end
+    for _, item in pairs(itemsBySlot) do
+        UpdateBetterBagsItem(item)
+    end
+end
+
+function H:HookBetterBags()
+    if betterBagsHooked then return end
+    if not LibStub then return end
+
+    local ok, AceAddon = pcall(LibStub, 'AceAddon-3.0')
+    if not ok or not AceAddon then return end
+    local bb
+    ok, bb = pcall(AceAddon.GetAddon, AceAddon, 'BetterBags')
+    if not ok or not bb then return end
+
+    local events
+    ok, events = pcall(bb.GetModule, bb, 'Events')
+    if not ok or not events then return end
+
+    betterBagsHooked = true
+    H.betterBagsHooked = true
+
+    -- Use BetterBags' AceEvent to register for messages
+    local AceEvent = LibStub('AceEvent-3.0')
+    local receiver = {}
+    AceEvent:Embed(receiver)
+
+    -- Raw AceEvent callback signature: (eventName, ctx, ...)
+    -- BetterBags prepends ctx before dispatching via AceEvent
+    receiver:RegisterMessage('bag/Rendered', function(_, _ctx, bag)
+        betterBagsBags[bag] = true
+        RefreshBetterBagsBag(bag)
+    end)
+
+    receiver:RegisterMessage('item/Clearing', function(_, _ctx, item)
+        if item and item.button and item.button._upgradeHelperOverlay then
+            item.button._upgradeHelperOverlay:Hide()
+        end
+    end)
+
+    H._betterBagsReceiver = receiver -- prevent GC
+end
+
+function H:UpdateBetterBagsOverlays()
+    if not betterBagsHooked then return end
+    for bag in pairs(betterBagsBags) do
+        RefreshBetterBagsBag(bag)
+    end
 end
 
 ------------------------------------------------------------------------
