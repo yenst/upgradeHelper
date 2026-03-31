@@ -177,6 +177,9 @@ function H:ScanAllItems()
     if Baganator and Baganator.API and Baganator.API.RequestItemButtonsRefresh then
         Baganator.API.RequestItemButtonsRefresh()
     end
+    if H.bagnonHooked and H.bagnonAddon and H.bagnonAddon.SendSignal then
+        H.bagnonAddon:SendSignal('UPDATE_ALL')
+    end
 end
 
 --- Check a single item for crest-free upgrade levels.
@@ -301,18 +304,23 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         H.db = UpgradeHelperDB
         H.scannedItems = H.db.charScannedItems[charKey]
 
-        -- Register Baganator widget now that H.db has the saved position
+        -- Hook already-loaded bag addons
         if C_AddOns.IsAddOnLoaded("Baganator") then
             H:RegisterBaganatorWidget()
-            frame:UnregisterEvent("ADDON_LOADED")
         end
-        -- else: keep ADDON_LOADED registered to catch Baganator loading later
+        -- Bagnon uses ## Group: BagBrother, so check both names
+        if C_AddOns.IsAddOnLoaded("Bagnon") or C_AddOns.IsAddOnLoaded("BagBrother") then
+            H:HookBagnon()
+        end
 
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
-    elseif event == "ADDON_LOADED" and arg1 == "Baganator" then
-        H:RegisterBaganatorWidget()
-        frame:UnregisterEvent("ADDON_LOADED")
+    elseif event == "ADDON_LOADED" then
+        if arg1 == "Baganator" then
+            H:RegisterBaganatorWidget()
+        elseif arg1 == "Bagnon" or arg1 == "BagBrother" then
+            H:HookBagnon()
+        end
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then
             H:CreateScanButton()

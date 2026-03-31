@@ -283,3 +283,51 @@ function H:RegisterBaganatorWidget()
         {corner = "bottom_right", priority = 1}
     )
 end
+
+------------------------------------------------------------------------
+-- Bagnon integration (hook ContainerItem:Update via BagBrother)
+------------------------------------------------------------------------
+
+local function UpdateBagnonButton(itemButton)
+    local overlay = itemButton._upgradeHelperOverlay
+    if not H.db.showCharOverlays then
+        if overlay then overlay:Hide() end
+        return
+    end
+
+    -- Skip cached/offline character views
+    if itemButton.IsCached and itemButton:IsCached() then
+        if overlay then overlay:Hide() end
+        return
+    end
+
+    local itemLink = itemButton.info and itemButton.info.hyperlink
+    if itemLink then
+        local info = H:GetFreeUpgradeInfo(itemLink)
+        if info and info.freeLevels > 0 then
+            local ov = GetOrCreateBagOverlay(itemButton)
+            if ov then
+                ov:SetFrameLevel(itemButton:GetFrameLevel() + 5)
+                ov:Show()
+            end
+            return
+        end
+    end
+
+    if overlay then overlay:Hide() end
+end
+
+function H:HookBagnon()
+    -- BagBrother classes may be registered on the Bagnon global (Group directive)
+    -- or the BagBrother global depending on load context; check both.
+    local bb = (Bagnon and Bagnon.ContainerItem and Bagnon)
+            or (BagBrother and BagBrother.ContainerItem and BagBrother)
+    if not bb then return end
+    if H.bagnonHooked then return end
+    H.bagnonHooked = true
+    H.bagnonAddon = bb
+
+    hooksecurefunc(bb.ContainerItem, 'Update', function(self)
+        UpdateBagnonButton(self)
+    end)
+end
