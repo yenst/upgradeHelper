@@ -117,6 +117,9 @@ function H:RefreshOverlayIcons()
     if H.betterBagsHooked and H.UpdateBetterBagsOverlays then
         H:UpdateBetterBagsOverlays()
     end
+    if H.arkInventoryHooked and H.UpdateArkInventoryOverlays then
+        H:UpdateArkInventoryOverlays()
+    end
 end
 
 --- Reposition all existing overlays (called when position setting changes).
@@ -377,6 +380,52 @@ function H:UpdateBetterBagsOverlays()
     if not betterBagsHooked then return end
     for bag in pairs(betterBagsBags) do
         RefreshBetterBagsBag(bag)
+    end
+end
+
+------------------------------------------------------------------------
+-- ArkInventory integration (API hook)
+------------------------------------------------------------------------
+
+local function UpdateArkInventoryFrame(frame)
+    local overlay = frame._upgradeHelperOverlay
+    if not H.db.showCharOverlays then
+        if overlay then overlay:Hide() end
+        return
+    end
+
+    local i = ArkInventory.API.ItemFrameItemTableGet(frame)
+    local itemLink = i and i.h
+    if itemLink then
+        local info = H:GetFreeUpgradeInfo(itemLink)
+        if info and info.freeLevels > 0 then
+            local ov = GetOrCreateBagOverlay(frame)
+            if ov then
+                ov:SetFrameLevel(frame:GetFrameLevel() + 5)
+                ov:Show()
+            end
+            return
+        end
+    end
+
+    if overlay then overlay:Hide() end
+end
+
+function H:HookArkInventory()
+    if not ArkInventory or not ArkInventory.API or not ArkInventory.API.ItemFrameUpdated then return end
+    if H.arkInventoryHooked then return end
+    H.arkInventoryHooked = true
+
+    hooksecurefunc(ArkInventory.API, "ItemFrameUpdated", function(frame)
+        UpdateArkInventoryFrame(frame)
+    end)
+end
+
+function H:UpdateArkInventoryOverlays()
+    if not H.arkInventoryHooked then return end
+    if not ArkInventory.API.ItemFrameLoadedIterate then return end
+    for _, frame in ArkInventory.API.ItemFrameLoadedIterate() do
+        UpdateArkInventoryFrame(frame)
     end
 end
 

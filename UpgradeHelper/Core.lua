@@ -184,6 +184,9 @@ function H:ScanAllItems()
     if H.betterBagsHooked and H.UpdateBetterBagsOverlays then
         H:UpdateBetterBagsOverlays()
     end
+    if H.arkInventoryHooked and H.UpdateArkInventoryOverlays then
+        H:UpdateArkInventoryOverlays()
+    end
 end
 
 --- Check a single item for crest-free upgrade levels.
@@ -318,6 +321,10 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         if C_AddOns.IsAddOnLoaded("BetterBags") then
             pcall(H.HookBetterBags, H)
         end
+        -- Hook ArkInventory if already loaded
+        if C_AddOns.IsAddOnLoaded("ArkInventory") then
+            pcall(H.HookArkInventory, H)
+        end
 
         frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
@@ -327,6 +334,8 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         pcall(H.HookBagnon, H)
     elseif event == "ADDON_LOADED" and arg1 == "BetterBags" then
         pcall(H.HookBetterBags, H)
+    elseif event == "ADDON_LOADED" and arg1 == "ArkInventory" then
+        pcall(H.HookArkInventory, H)
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
         if arg1 == Enum.PlayerInteractionType.ItemUpgrade then
             H:CreateScanButton()
