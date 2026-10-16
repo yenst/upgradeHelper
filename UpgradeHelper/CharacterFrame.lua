@@ -270,8 +270,9 @@ function H:RegisterBaganatorWidget()
         "upgradehelper-free-upgrade",
         function(cornerFrame, details)
             if not details.itemLink then return false end
-            local info = H:GetFreeUpgradeInfo(details.itemLink)
-            if info and info.freeLevels > 0 then
+            -- pcall so an error in our lookup never breaks Baganator's bag rendering
+            local ok, info = pcall(H.GetFreeUpgradeInfo, H, details.itemLink)
+            if ok and info and info.freeLevels > 0 then
                 local iconInfo = H:GetIconInfo()
                 cornerFrame:SetAtlas(iconInfo.atlas)
                 cornerFrame:SetVertexColor(unpack(iconInfo.color))

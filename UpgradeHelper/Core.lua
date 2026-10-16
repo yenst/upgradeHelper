@@ -99,7 +99,7 @@ H.SLOT_NAMES = {
 --- Create a stable cache key from an item link.
 function H:ItemLinkToKey(itemLink)
     if not itemLink then return nil end
-    local id = GetItemInfoInstant(itemLink)
+    local id = C_Item.GetItemInfoInstant(itemLink)
     if not id then return nil end
     local stripped = itemLink:match("|Hitem:([%d:%-]+)|")
     return stripped or tostring(id)
@@ -144,7 +144,7 @@ function H:ScanAllItems()
             if itemLocation and itemLocation:IsValid() and C_Item.DoesItemExist(itemLocation) then
                 local itemLink = C_Container.GetContainerItemLink(bag, slot)
                 if itemLink then
-                    local _, _, _, itemEquipLoc = GetItemInfoInstant(itemLink)
+                    local _, _, _, itemEquipLoc = C_Item.GetItemInfoInstant(itemLink)
                     if itemEquipLoc and itemEquipLoc ~= "" and itemEquipLoc ~= "INVTYPE_BAG" and itemEquipLoc ~= "INVTYPE_NON_EQUIP" then
                         local ok, freeLevels, info = pcall(H.CheckItemUpgrade, H, itemLocation, nil)
                         if ok and freeLevels and freeLevels > 0 then
