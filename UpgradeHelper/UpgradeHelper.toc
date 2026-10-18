@@ -1,8 +1,8 @@
-## Interface: 120001
+## Interface: 120105
 ## Title: UpgradeHelper
 ## Notes: Shows which equipped items can be upgraded for free (without crests)
 ## Author: UpgradeHelper
-## Version: 0.1.0
+## Version: 0.2.0
 ## IconTexture: Interface\AddOns\UpgradeHelper\UpgradeHelper.tga
 ## Category-enUS: Gear
 ## Category-deDE: Ausrüstung
