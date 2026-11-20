@@ -1,0 +1,16 @@
+# BigWigs packager config (used by .github/workflows/release.yml).
+# The addon lives in UpgradeHelper/; move it to the zip root and leave the
+# repo notes and old builds out.
+package-as: UpgradeHelper
+
+move-folders:
+  UpgradeHelper/UpgradeHelper: UpgradeHelper
+
+ignore:
+  - dist
+  - README.md
+  - CLAUDE.md
+  - DESIGN.md
+  - curseforge.md
+
+enable-nolib-creation: no
