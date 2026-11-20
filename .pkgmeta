@@ -7,6 +7,7 @@ move-folders:
   UpgradeHelper/UpgradeHelper: UpgradeHelper
 
 ignore:
+  - assets
   - dist
   - README.md
   - CLAUDE.md
